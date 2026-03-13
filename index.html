@@ -10,34 +10,26 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     // ====================================================
     // 🔥 KONFIGURASI FIREBASE — GANTI DENGAN MILIK KAMU
     // ====================================================
-      const firebaseConfig = {
-    apiKey: "AIzaSyDs2JLC3V2RDE9W7WQ5Dc-zsEgJkhwxKLg",
-    authDomain: "kuisjangka.firebaseapp.com",
-    databaseURL: "https://kuisjangka-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "kuisjangka",
-    storageBucket: "kuisjangka.firebasestorage.app",
-    messagingSenderId: "152443329397",
-    appId: "1:152443329397:web:4ba1f08c68a0f7a805113c"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDs2JLC3V2RDE9W7WQ5Dc-zsEgJkhwxKLg",
+      authDomain: "kuisjangka.firebaseapp.com",
+      databaseURL: "https://kuisjangka-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "kuisjangka",
+      storageBucket: "kuisjangka.firebasestorage.app",
+      messagingSenderId: "152443329397",
+      appId: "1:152443329397:web:4ba1f08c68a0f7a805113c"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db  = getDatabase(app);
 
-    // Expose ke window agar app.js bisa pakai
-    window._firebaseDB  = db;
-    window._firebaseRef = ref;
-    window._firebasePush = push;
-    window._firebaseOnValue = onValue;
-    window._firebaseRemove = remove;
-    window._firebaseGet = get;
-    window._firebaseReady = true;
-
-    // Dispatch event supaya app.js tahu Firebase sudah siap
+    window._FB = { db, ref, push, onValue, remove };
+    window._fbReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
 
@@ -45,302 +37,303 @@
 </head>
 <body>
 
-<!-- ========== LOADING SCREEN ========== -->
+<!-- ========== LOADING ========== -->
 <div id="loading-screen">
-  <div class="loading-inner">
-    <div class="loading-spinner"></div>
+  <div class="ld-inner">
+    <div class="ld-spinner"></div>
     <p>Menghubungkan ke database...</p>
   </div>
 </div>
 
-<!-- ========== SETUP GUIDE (tampil jika Firebase belum dikonfigurasi) ========== -->
+<!-- ========== SETUP GUIDE ========== -->
 <div id="setup-guide" style="display:none">
-  <div class="setup-container">
-    <div class="setup-icon">🔥</div>
+  <div class="setup-wrap">
+    <div class="setup-fire">🔥</div>
     <h1>Setup Firebase Diperlukan</h1>
-    <p class="setup-sub">Ikuti langkah berikut untuk menghubungkan website dengan Firebase:</p>
-    <div class="setup-steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <strong>Buat Project Firebase</strong>
-          <p>Pergi ke <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → klik <em>Add project</em> → beri nama (contoh: <code>kuis-jangka-sorong</code>)</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <strong>Aktifkan Realtime Database</strong>
-          <p>Di sidebar kiri → <em>Build</em> → <em>Realtime Database</em> → <em>Create Database</em> → pilih lokasi <strong>asia-southeast1</strong> → pilih mode <strong>Test mode</strong> (untuk awal)</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <strong>Dapatkan Konfigurasi</strong>
-          <p>Project Settings (⚙️) → <em>Your apps</em> → klik ikon Web (<code>&lt;/&gt;</code>) → Register app → copy <code>firebaseConfig</code></p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <strong>Edit file <code>index.html</code></strong>
-          <p>Ganti bagian <code>firebaseConfig</code> di dalam tag <code>&lt;script type="module"&gt;</code> dengan config yang kamu copy</p>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">5</div>
-        <div class="step-body">
-          <strong>Atur Rules Database</strong>
-          <p>Di Realtime Database → tab <em>Rules</em> → paste rules berikut lalu klik Publish:</p>
-          <pre class="code-block">{
+    <p class="setup-lead">Ikuti 6 langkah berikut untuk menghubungkan website ke Firebase:</p>
+    <div class="steps">
+      <div class="step"><div class="sn">1</div><div class="sb"><strong>Buat Project Firebase</strong><p>Buka <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Add project → beri nama (contoh: <code>kuis-jangka-sorong</code>) → Create project</p></div></div>
+      <div class="step"><div class="sn">2</div><div class="sb"><strong>Aktifkan Realtime Database</strong><p>Sidebar → Build → Realtime Database → Create Database → lokasi <strong>asia-southeast1</strong> → pilih <strong>Test mode</strong> → Enable</p></div></div>
+      <div class="step"><div class="sn">3</div><div class="sb"><strong>Dapatkan Config Web App</strong><p>Project Settings (⚙️) → Your apps → klik ikon <code>&lt;/&gt;</code> → Register app → copy seluruh <code>firebaseConfig</code></p></div></div>
+      <div class="step"><div class="sn">4</div><div class="sb"><strong>Edit index.html</strong><p>Buka file ini dengan Notepad/VS Code → cari teks <code>GANTI_API_KEY</code> → ganti seluruh blok firebaseConfig dengan yang kamu copy</p></div></div>
+      <div class="step"><div class="sn">5</div><div class="sb"><strong>Atur Rules Database</strong><p>Firebase → Realtime Database → tab Rules → paste dan Publish:</p><pre>{
   "rules": {
     "responden": {
       ".read": true,
       ".write": true
     }
   }
-}</pre>
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">6</div>
-        <div class="step-body">
-          <strong>Upload ke GitHub & Aktifkan Pages</strong>
-          <p>Push semua file ke repository GitHub → Settings → Pages → Source: <strong>main / root</strong> → Save</p>
-        </div>
-      </div>
+}</pre></div></div>
+      <div class="step"><div class="sn">6</div><div class="sb"><strong>Upload ke GitHub Pages</strong><p>Upload <code>index.html</code>, <code>style.css</code>, <code>app.js</code> ke repo GitHub → Settings → Pages → main/root → Save</p></div></div>
     </div>
-    <div class="setup-note">
-      💡 <strong>Setelah setup selesai</strong>, refresh halaman ini dan website siap digunakan!
-    </div>
+    <div class="setup-note">✅ Setelah semua langkah selesai, refresh halaman ini!</div>
   </div>
 </div>
 
-<!-- ========== COVER PAGE ========== -->
+<!-- ========== COVER ========== -->
 <div id="page-cover" class="page" style="display:none">
   <div class="cover-bg">
-    <div class="grid-overlay"></div>
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-    <div class="orb orb3"></div>
+    <div class="grid-layer"></div>
+    <div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
   </div>
-  <div class="cover-content">
-    <div class="badge-chip">📐 Fisika · Alat Ukur</div>
-    <h1 class="cover-title">Jangka<br/><span class="accent">Sorong</span></h1>
-    <p class="cover-sub">Uji pemahamanmu tentang alat ukur presisi dengan 12 soal pilihan ganda interaktif</p>
-
+  <div class="cover-left">
+    <span class="chip">Dasar-Dasar · Alat Ukur</span>
+    <h1 class="cover-h1">Jangka<br/><em>Sorong</em></h1>
+    <p class="cover-p">Uji pemahamanmu tentang alat ukur presisi dengan 12 soal pilihan ganda interaktif</p>
     <div class="cover-meta">
-      <div class="meta-item">
-        <span class="meta-icon">👤</span>
-        <div>
-          <div class="meta-label">Dibuat oleh</div>
-          <div class="meta-value">Teguh Dermawan</div>
-        </div>
-      </div>
-      <div class="meta-divider"></div>
-      <div class="meta-item">
-        <span class="meta-icon">🎓</span>
-        <div>
-          <div class="meta-label">NIM</div>
-          <div class="meta-value">2284240017</div>
-        </div>
-      </div>
-      <div class="meta-divider"></div>
-      <div class="meta-item">
-        <span class="meta-icon">👥</span>
-        <div>
-          <div class="meta-label">Total Responden</div>
-          <div class="meta-value" id="cover-responden-count">
-            <span class="count-loading">...</span>
-          </div>
-        </div>
-      </div>
+      <div class="cm-item"><span class="cm-ico">👤</span><div><div class="cm-lbl">Dibuat oleh</div><div class="cm-val">Teguh Dermawan</div></div></div>
+      <div class="cm-sep"></div>
+      <div class="cm-item"><span class="cm-ico">🎓</span><div><div class="cm-lbl">NIM</div><div class="cm-val">2284240017</div></div></div>
+      <div class="cm-sep"></div>
+      <div class="cm-item"><span class="cm-ico">👥</span><div><div class="cm-lbl">Responden</div><div class="cm-val" id="cv-count"><span class="loading-dots">···</span></div></div></div>
     </div>
-
-    <div class="cover-actions">
-      <button class="btn-primary" onclick="App.startQuiz()">
-        <span>Mulai Kuis</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
+    <div class="cover-btns">
+      <button class="btn-primary" onclick="App.startQuiz()">Mulai Kuis <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
       <button class="btn-ghost" onclick="App.showAdminLogin()">🔐 Admin</button>
     </div>
-
-    <div class="db-status" id="db-status">
-      <span class="db-dot"></span>
-      <span id="db-status-text">Terhubung ke Firebase</span>
-    </div>
+    <div class="db-live"><span class="db-dot"></span><span>Terhubung ke Firebase</span></div>
   </div>
-
-  <div class="cover-visual">
-    <div class="caliper-wrap">
-      <svg class="caliper-svg" viewBox="0 0 420 240" xmlns="http://www.w3.org/2000/svg">
+  <div class="cover-right">
+    <!-- Realistic SVG Jangka Sorong -->
+    <div class="caliper-scene">
+      <svg class="caliper-main" viewBox="0 0 500 280" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#f5c842"/><stop offset="100%" style="stop-color:#b8860b"/>
+          <linearGradient id="metalBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e8d090"/><stop offset="30%" stop-color="#c8a020"/>
+            <stop offset="70%" stop-color="#a07010"/><stop offset="100%" stop-color="#c8a020"/>
           </linearGradient>
-          <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:#4fc3f7"/><stop offset="100%" style="stop-color:#0277bd"/>
+          <linearGradient id="metalSlide" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#b8d8f0"/><stop offset="40%" stop-color="#5090c0"/>
+            <stop offset="100%" stop-color="#305080"/>
           </linearGradient>
+          <linearGradient id="screw" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#555"/><stop offset="50%" stop-color="#aaa"/>
+            <stop offset="100%" stop-color="#666"/>
+          </linearGradient>
+          <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+            <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.4)"/>
+          </filter>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
         </defs>
-        <rect x="30" y="90" width="350" height="38" fill="url(#g1)" rx="6" opacity="0.92"/>
-        <rect x="30" y="128" width="56" height="80" fill="url(#g1)" rx="3" opacity="0.92"/>
-        <rect x="86" y="84" width="100" height="50" fill="url(#g2)" rx="4" opacity="0.88"/>
-        <rect x="86" y="128" width="56" height="64" fill="url(#g2)" rx="3" opacity="0.88"/>
-        <rect x="374" y="90" width="12" height="95" fill="#aaa" rx="4" opacity="0.8"/>
-        <g stroke="rgba(255,255,255,0.6)" stroke-width="1.2">
-          <line x1="86" y1="90" x2="86" y2="80"/><line x1="136" y1="90" x2="136" y2="80"/>
-          <line x1="186" y1="90" x2="186" y2="80"/><line x1="236" y1="90" x2="236" y2="80"/>
-          <line x1="286" y1="90" x2="286" y2="80"/><line x1="336" y1="90" x2="336" y2="80"/>
-          <line x1="111" y1="90" x2="111" y2="84"/><line x1="161" y1="90" x2="161" y2="84"/>
-          <line x1="211" y1="90" x2="211" y2="84"/><line x1="261" y1="90" x2="261" y2="84"/>
-          <line x1="311" y1="90" x2="311" y2="84"/>
+
+        <!-- SHADOW -->
+        <ellipse cx="250" cy="268" rx="200" ry="10" fill="rgba(0,0,0,0.25)"/>
+
+        <!-- MAIN BODY BAR -->
+        <rect x="30" y="98" width="420" height="40" fill="url(#metalBody)" rx="5" filter="url(#shadow)"/>
+        <!-- Body highlight top -->
+        <rect x="30" y="98" width="420" height="6" fill="rgba(255,255,200,0.3)" rx="5"/>
+        <!-- Body groove -->
+        <rect x="30" y="122" width="420" height="3" fill="rgba(0,0,0,0.2)" rx="1"/>
+
+        <!-- SCALE MARKINGS on body - cm -->
+        <g font-family="'DM Sans',monospace" font-size="9" fill="#1a1000" font-weight="600">
+          <text x="96"  y="96">0</text><text x="146" y="96">1</text><text x="196" y="96">2</text>
+          <text x="246" y="96">3</text><text x="296" y="96">4</text><text x="346" y="96">5</text>
+          <text x="396" y="96">6</text>
         </g>
-        <g font-family="monospace" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">
-          <text x="86" y="76">0</text><text x="136" y="76">1</text><text x="186" y="76">2</text>
-          <text x="236" y="76">3</text><text x="286" y="76">4</text><text x="336" y="76">5</text>
+        <!-- cm tick marks -->
+        <g stroke="#3a2000" stroke-width="1.5">
+          <line x1="100" y1="98" x2="100" y2="88"/><line x1="150" y1="98" x2="150" y2="88"/>
+          <line x1="200" y1="98" x2="200" y2="88"/><line x1="250" y1="98" x2="250" y2="88"/>
+          <line x1="300" y1="98" x2="300" y2="88"/><line x1="350" y1="98" x2="350" y2="88"/>
+          <line x1="400" y1="98" x2="400" y2="88"/>
         </g>
-        <rect x="86" y="132" width="62" height="22" fill="#0d47a1" rx="3" opacity="0.8"/>
-        <g stroke="rgba(255,255,255,0.7)" stroke-width="1.2">
-          <line x1="86" y1="132" x2="86" y2="142"/><line x1="92" y1="132" x2="92" y2="138"/>
-          <line x1="98" y1="132" x2="98" y2="138"/><line x1="104" y1="132" x2="104" y2="138"/>
-          <line x1="110" y1="132" x2="110" y2="138"/><line x1="116" y1="132" x2="116" y2="138"/>
-          <line x1="122" y1="132" x2="122" y2="138"/><line x1="128" y1="132" x2="128" y2="138"/>
-          <line x1="134" y1="132" x2="134" y2="138"/><line x1="140" y1="132" x2="140" y2="142"/>
-          <line x1="148" y1="132" x2="148" y2="142"/>
+        <!-- 0.5mm ticks -->
+        <g stroke="#3a2000" stroke-width="0.8">
+          <line x1="110" y1="98" x2="110" y2="92"/><line x1="120" y1="98" x2="120" y2="91"/>
+          <line x1="130" y1="98" x2="130" y2="92"/><line x1="140" y1="98" x2="140" y2="91"/>
+          <line x1="160" y1="98" x2="160" y2="92"/><line x1="170" y1="98" x2="170" y2="91"/>
+          <line x1="180" y1="98" x2="180" y2="92"/><line x1="190" y1="98" x2="190" y2="91"/>
+          <line x1="210" y1="98" x2="210" y2="92"/><line x1="220" y1="98" x2="220" y2="91"/>
+          <line x1="230" y1="98" x2="230" y2="92"/><line x1="240" y1="98" x2="240" y2="91"/>
+          <line x1="260" y1="98" x2="260" y2="92"/><line x1="270" y1="98" x2="270" y2="91"/>
+          <line x1="280" y1="98" x2="280" y2="92"/><line x1="290" y1="98" x2="290" y2="91"/>
+          <line x1="310" y1="98" x2="310" y2="92"/><line x1="320" y1="98" x2="320" y2="91"/>
+          <line x1="330" y1="98" x2="330" y2="92"/><line x1="340" y1="98" x2="340" y2="91"/>
+          <line x1="360" y1="98" x2="360" y2="92"/><line x1="370" y1="98" x2="370" y2="91"/>
+          <line x1="380" y1="98" x2="380" y2="92"/><line x1="390" y1="98" x2="390" y2="91"/>
         </g>
-        <text x="210" y="210" font-family="'DM Sans',sans-serif" font-size="14" fill="rgba(245,200,66,0.6)" text-anchor="middle">Jangka Sorong · 0,1 mm</text>
+
+        <!-- FIXED JAW (rahang tetap) -->
+        <path d="M30,138 L30,230 Q30,238 38,238 L82,238 Q88,238 88,232 L88,200 L86,198 L86,138 Z"
+              fill="url(#metalBody)" stroke="#a07010" stroke-width="1" filter="url(#shadow)"/>
+        <rect x="30" y="138" width="56" height="6" fill="rgba(255,240,180,0.35)"/>
+        <!-- Jaw bevel -->
+        <line x1="86" y1="138" x2="86" y2="198" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>
+
+        <!-- FIXED UPPER JAW (for inner measurement) -->
+        <path d="M30,98 L30,68 Q30,62 36,62 L76,62 Q82,62 82,68 L82,98 Z"
+              fill="url(#metalBody)" stroke="#a07010" stroke-width="1"/>
+        <rect x="30" y="92" width="52" height="6" fill="rgba(0,0,0,0.1)"/>
+
+        <!-- DEPTH PROBE -->
+        <rect x="446" y="98" width="8" height="110" fill="#888" rx="3" filter="url(#shadow)"/>
+        <rect x="446" y="98" width="8" height="4" fill="#ccc" rx="1"/>
+
+        <!-- SLIDING PART -->
+        <rect x="90" y="92" width="110" height="54" fill="url(#metalSlide)" rx="4" filter="url(#shadow)"/>
+        <rect x="90" y="92" width="110" height="7" fill="rgba(200,230,255,0.3)" rx="4"/>
+        <!-- Slide screw groove -->
+        <rect x="158" y="115" width="40" height="12" rx="6" fill="url(#screw)"/>
+        <circle cx="168" cy="121" r="4" fill="#777" stroke="#555" stroke-width="0.5"/>
+        <circle cx="188" cy="121" r="4" fill="#777" stroke="#555" stroke-width="0.5"/>
+
+        <!-- VERNIER SCALE on slide (showing ~2.36) -->
+        <rect x="100" y="108" width="58" height="16" fill="#0d3060" rx="2" opacity="0.9"/>
+        <!-- Nonius scale marks -->
+        <g stroke="rgba(200,230,255,0.9)" stroke-width="1">
+          <line x1="100" y1="108" x2="100" y2="116"/>
+          <line x1="106" y1="108" x2="106" y2="113"/>
+          <line x1="112" y1="108" x2="112" y2="113"/>
+          <line x1="118" y1="108" x2="118" y2="113"/>
+          <line x1="124" y1="108" x2="124" y2="113"/>
+          <line x1="130" y1="108" x2="130" y2="113"/>
+          <line x1="136" y1="108" x2="136" y2="116"/><!-- coincidence mark -->
+          <line x1="142" y1="108" x2="142" y2="113"/>
+          <line x1="148" y1="108" x2="148" y2="113"/>
+          <line x1="154" y1="108" x2="154" y2="113"/>
+          <line x1="158" y1="108" x2="158" y2="116"/>
+        </g>
+        <!-- Highlight coincidence -->
+        <line x1="136" y1="106" x2="136" y2="118" stroke="#f5c842" stroke-width="1.5" opacity="0.9"/>
+        <g font-family="monospace" font-size="8" fill="rgba(200,230,255,0.85)">
+          <text x="98" y="125">0</text><text x="133" y="125">6</text><text x="155" y="125">10</text>
+        </g>
+
+        <!-- MOVABLE JAW (lower) -->
+        <path d="M90,138 L90,200 L92,202 L92,235 Q92,242 98,242 L138,242 Q144,242 144,236 L144,138 Z"
+              fill="url(#metalSlide)" stroke="#305080" stroke-width="1" filter="url(#shadow)"/>
+        <rect x="90" y="138" width="54" height="5" fill="rgba(200,230,255,0.2)"/>
+
+        <!-- MOVABLE UPPER JAW -->
+        <path d="M90,98 L90,62 Q90,55 96,55 L136,55 Q142,55 142,62 L142,98 Z"
+              fill="url(#metalSlide)" stroke="#305080" stroke-width="1"/>
+
+        <!-- MEASUREMENT OBJECT (example: ring between jaws) -->
+        <rect x="86" y="198" width="6" height="35" fill="#e0e0e0" opacity="0.6"/>
+        <rect x="90" y="198" width="4" height="32" fill="#c0c0c0" opacity="0.6"/>
+
+        <!-- LABELS -->
+        <g font-family="'DM Sans',sans-serif" font-size="10" font-weight="600">
+          <text x="38" y="255" fill="rgba(245,200,66,0.9)">Rahang Tetap</text>
+          <text x="92" y="260" fill="rgba(100,180,255,0.9)">Rahang Geser</text>
+          <text x="240" y="83" fill="rgba(74,222,128,0.9)">Skala Utama (cm)</text>
+          <text x="100" y="134" fill="rgba(245,200,66,0.85)">Skala Nonius</text>
+          <text x="445" y="220" fill="rgba(200,200,200,0.8)" font-size="9">Probe</text>
+        </g>
       </svg>
-      <div class="float-tags">
-        <div class="float-tag t1">Ketelitian 0,1 mm</div>
-        <div class="float-tag t2">Skala Nonius</div>
-        <div class="float-tag t3">Skala Utama</div>
-      </div>
+      <div class="caliper-label">Jangka Sorong · Ketelitian 0,1 mm</div>
     </div>
   </div>
 </div>
 
-<!-- ========== IDENTITY PAGE ========== -->
+<!-- ========== IDENTITY ========== -->
 <div id="page-identity" class="page" style="display:none">
   <div class="page-center">
     <div class="card-form">
-      <div class="card-form-header">
+      <div class="cfh">
         <button class="back-btn" onclick="App.showPage('page-cover')">← Kembali</button>
-        <div class="card-form-icon">📝</div>
+        <div class="cfh-icon">📝</div>
         <h2>Data Diri Responden</h2>
-        <p>Isi data sebelum mengerjakan kuis. Data ini akan tersimpan bersama hasil jawabanmu.</p>
+        <p>Isi data sebelum mengerjakan kuis. Semua data tersimpan ke Firebase.</p>
       </div>
-      <div class="card-form-body">
-        <div class="field-group">
-          <label>Nama Lengkap <span class="required">*</span></label>
-          <input type="text" id="inp-nama" placeholder="Masukkan nama lengkap" autocomplete="name"/>
+      <div class="cfb">
+        <div class="fg"><label>Nama Lengkap <span class="req">*</span></label>
+          <input type="text" id="inp-nama" placeholder="Masukkan nama lengkap" autocomplete="name"/></div>
+        <div class="frow">
+          <div class="fg"><label>Angkatan <span class="req">*</span></label>
+            <input type="text" id="inp-angkatan" placeholder="Contoh: 2022 / 2023" maxlength="10"/></div>
+          <div class="fg"><label>Kelas / Semester</label>
+            <input type="text" id="inp-kelas" placeholder="Contoh: A / Sem 3"/></div>
         </div>
-        <div class="field-row">
-          <div class="field-group">
-            <label>Kelas / Semester</label>
-            <input type="text" id="inp-kelas" placeholder="Contoh: XI IPA 2"/>
-          </div>
-          <div class="field-group">
-            <label>Institusi / Sekolah</label>
-            <input type="text" id="inp-institusi" placeholder="Nama sekolah/kampus"/>
-          </div>
-        </div>
-        <div class="field-group">
-          <label>Email (Opsional)</label>
-          <input type="email" id="inp-email" placeholder="email@contoh.com"/>
-        </div>
-        <div id="identity-error" class="error-box" style="display:none">⚠️ Nama lengkap wajib diisi!</div>
-        <button class="btn-primary full-w" onclick="App.startQuestions()">
-          Lanjut ke Soal →
-        </button>
+        <div class="fg"><label>Institusi / Sekolah / Kampus</label>
+          <input type="text" id="inp-institusi" placeholder="Nama institusi"/></div>
+        <div class="fg"><label>Email (Opsional)</label>
+          <input type="email" id="inp-email" placeholder="email@contoh.com"/></div>
+        <div id="id-err" class="err-box" style="display:none">⚠️ Nama lengkap dan Angkatan wajib diisi!</div>
+        <button class="btn-primary full-w" onclick="App.startQuestions()">Lanjut ke Soal →</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ========== QUIZ PAGE ========== -->
+<!-- ========== QUIZ ========== -->
 <div id="page-quiz" class="page" style="display:none">
-  <div class="quiz-wrapper">
-    <header class="quiz-header">
-      <div class="quiz-header-top">
-        <div class="quiz-brand">📐 Kuis Jangka Sorong</div>
-        <div class="quiz-timer" id="quiz-timer">⏱ <span id="timer-val">30:00</span></div>
+  <div class="quiz-wrap">
+    <header class="qhdr">
+      <div class="qhdr-top">
+        <span class="qhdr-brand">📐 Kuis Jangka Sorong</span>
+        <span class="qtimer" id="qtimer">⏱ <span id="tval">30:00</span></span>
       </div>
-      <div class="quiz-progress-row">
-        <span class="quiz-prog-label" id="prog-label">Soal 1 dari 12</span>
-        <span class="quiz-prog-pct" id="prog-pct">0%</span>
+      <div class="qhdr-row">
+        <span id="q-prog-lbl" class="qpl">Soal 1 dari 12</span>
+        <span id="q-prog-pct" class="qpct">0%</span>
       </div>
-      <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill"></div></div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
     </header>
-
-    <div class="question-card">
-      <div class="q-number-bg" id="q-num-bg">01</div>
-      <div class="q-text" id="q-text">Loading...</div>
-      <div class="q-img-box" id="q-img-box" style="display:none">
-        <img id="q-img" src="" alt="Diagram Soal"/>
-        <div class="q-img-caption" id="q-img-caption"></div>
+    <div class="q-card">
+      <div class="q-nbg" id="q-nbg">01</div>
+      <div class="q-txt" id="q-txt"></div>
+      <div class="q-img-wrap" id="q-img-wrap" style="display:none">
+        <img id="q-img" src="" alt="Diagram"/>
+        <div class="q-img-cap" id="q-img-cap"></div>
       </div>
-      <div class="options-list" id="options-list"></div>
+      <div class="opts" id="opts"></div>
     </div>
-
-    <div class="quiz-footer">
-      <button class="btn-nav-prev" id="btn-prev" onclick="App.prevQ()">← Sebelumnya</button>
-      <div class="dot-row" id="dot-row"></div>
-      <button class="btn-nav-next" id="btn-next" onclick="App.nextQ()">Selanjutnya →</button>
+    <div class="q-nav">
+      <button class="btn-prev" id="btn-prev" onclick="App.prevQ()">← Sebelumnya</button>
+      <div class="dots" id="dots"></div>
+      <button class="btn-next" id="btn-next" onclick="App.nextQ()">Selanjutnya →</button>
     </div>
   </div>
 </div>
 
-<!-- ========== RESULT PAGE ========== -->
+<!-- ========== RESULT ========== -->
 <div id="page-result" class="page" style="display:none">
   <div class="page-center">
     <div class="result-card">
-      <div class="result-glow"></div>
-      <div class="result-emoji" id="res-emoji">🎉</div>
-      <h2 class="result-heading" id="res-heading">Selesai!</h2>
-
-      <div class="score-donut">
+      <div class="res-glow"></div>
+      <div class="res-emo" id="res-emo">🎉</div>
+      <h2 class="res-head" id="res-head">Selesai!</h2>
+      <div class="donut-wrap">
         <svg viewBox="0 0 120 120">
           <circle cx="60" cy="60" r="50" fill="none" stroke="#1e293b" stroke-width="12"/>
           <circle cx="60" cy="60" r="50" fill="none" stroke-width="12"
             stroke-dasharray="314" stroke-dashoffset="314"
-            id="donut-circle" stroke-linecap="round"
-            transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1.2s ease,stroke 0.5s"/>
+            id="donut-c" stroke-linecap="round" transform="rotate(-90 60 60)"
+            style="transition:stroke-dashoffset 1.2s ease,stroke 0.5s"/>
         </svg>
-        <div class="donut-center">
-          <div class="donut-score" id="donut-score">0</div>
-          <div class="donut-of">dari 12</div>
-        </div>
+        <div class="donut-mid"><div class="donut-n" id="donut-n">0</div><div class="donut-of">dari 12</div></div>
       </div>
-
-      <p class="result-msg" id="res-msg"></p>
-
-      <div class="result-pills">
-        <div class="pill green"><span id="pill-benar">0</span> Benar ✅</div>
-        <div class="pill red"><span id="pill-salah">0</span> Salah ❌</div>
-        <div class="pill gold"><span id="pill-nilai">0</span> Nilai 📊</div>
+      <p class="res-msg" id="res-msg"></p>
+      <div class="res-pills">
+        <div class="pill g"><span id="p-benar">0</span> Benar ✅</div>
+        <div class="pill r"><span id="p-salah">0</span> Salah ❌</div>
+        <div class="pill y"><span id="p-nilai">0</span> Nilai 📊</div>
       </div>
-
-      <div class="save-status" id="save-status">
-        <div class="save-spinner"></div> Menyimpan data ke Firebase...
+      <div class="save-row" id="save-row">
+        <div class="save-spin"></div> Menyimpan ke Firebase...
       </div>
-
-      <div class="result-actions">
-        <button class="btn-primary" onclick="App.goHome()">🏠 Kembali ke Beranda</button>
-        <button class="btn-ghost" onclick="App.reviewAnswers()">📋 Review Jawaban</button>
+      <div class="res-actions">
+        <button class="btn-primary" onclick="App.goHome()">🏠 Beranda</button>
+        <button class="btn-ghost" onclick="App.reviewAnswers()">📋 Review</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ========== REVIEW PAGE ========== -->
+<!-- ========== REVIEW ========== -->
 <div id="page-review" class="page" style="display:none">
-  <div class="review-wrap">
-    <div class="review-top">
-      <button class="back-btn" onclick="App.showPage('page-result')">← Kembali</button>
+  <div class="rev-wrap">
+    <div class="rev-top">
+      <button class="back-btn" onclick="App.showPage('page-result')">← Kembali ke Hasil</button>
       <h2>Review Jawaban</h2>
     </div>
-    <div id="review-body"></div>
+    <div id="rev-body"></div>
   </div>
 </div>
 
@@ -348,25 +341,21 @@
 <div id="page-admin-login" class="page" style="display:none">
   <div class="page-center">
     <div class="card-form">
-      <div class="card-form-header">
+      <div class="cfh">
         <button class="back-btn" onclick="App.showPage('page-cover')">← Kembali</button>
-        <div class="card-form-icon">🔐</div>
+        <div class="cfh-icon">🔐</div>
         <h2>Admin Panel</h2>
-        <p>Hanya admin yang dapat mengakses data responden dan export Excel</p>
+        <p>Hanya admin yang dapat melihat data responden dan export Excel</p>
       </div>
-      <div class="card-form-body">
-        <div class="field-group">
-          <label>Username</label>
-          <input type="text" id="adm-user" placeholder="Username" autocomplete="username"/>
-        </div>
-        <div class="field-group">
-          <label>Password</label>
-          <input type="password" id="adm-pass" placeholder="Password" autocomplete="current-password"
-            onkeydown="if(event.key==='Enter') App.adminLogin()"/>
-        </div>
-        <div class="error-box" id="adm-error" style="display:none">❌ Username atau password salah!</div>
+      <div class="cfb">
+        <div class="fg"><label>Username</label>
+          <input type="text" id="adm-u" placeholder="Username" autocomplete="username"/></div>
+        <div class="fg"><label>Password</label>
+          <input type="password" id="adm-p" placeholder="Password" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter')App.adminLogin()"/></div>
+        <div class="err-box" id="adm-err" style="display:none">❌ Username atau password salah!</div>
         <button class="btn-primary full-w" onclick="App.adminLogin()">Masuk ke Admin Panel</button>
-        <p class="hint-small">Default: <code>admin</code> / <code>teguh2024</code></p>
+        <p class="hint">Default: <code>admin</code> / <code>teguh2024</code></p>
       </div>
     </div>
   </div>
@@ -374,107 +363,75 @@
 
 <!-- ========== ADMIN DASHBOARD ========== -->
 <div id="page-admin" class="page" style="display:none">
-  <div class="admin-shell">
-
-    <!-- Sidebar -->
-    <aside class="adm-sidebar">
+  <div class="adm-shell">
+    <aside class="adm-side">
       <div class="adm-brand">
-        <div class="adm-avatar">TD</div>
-        <div>
-          <div class="adm-name">Admin Panel</div>
-          <div class="adm-nim">NIM 2284240017</div>
-        </div>
+        <div class="adm-av">TD</div>
+        <div><div class="adm-nm">Admin Panel</div><div class="adm-nim">NIM 2284240017</div></div>
       </div>
       <nav class="adm-nav">
-        <button class="adm-nav-btn active" data-tab="dash" onclick="App.switchTab('dash',this)">
-          <span class="adm-nav-icon">📊</span> Dashboard
-        </button>
-        <button class="adm-nav-btn" data-tab="resp" onclick="App.switchTab('resp',this)">
-          <span class="adm-nav-icon">👥</span> Responden
-        </button>
-        <button class="adm-nav-btn" data-tab="stat" onclick="App.switchTab('stat',this)">
-          <span class="adm-nav-icon">📈</span> Statistik Soal
-        </button>
+        <button class="anb active" data-tab="dash" onclick="App.tab('dash',this)"><span>📊</span> Dashboard</button>
+        <button class="anb" data-tab="resp" onclick="App.tab('resp',this)"><span>👥</span> Responden</button>
+        <button class="anb" data-tab="stat" onclick="App.tab('stat',this)"><span>📈</span> Statistik Soal</button>
       </nav>
-      <div class="adm-sidebar-footer">
+      <div class="adm-foot">
         <div class="live-badge"><span class="live-dot"></span> Live Firebase</div>
         <button class="btn-logout" onclick="App.adminLogout()">🚪 Keluar</button>
       </div>
     </aside>
-
-    <!-- Main -->
     <main class="adm-main">
 
-      <!-- TAB: DASHBOARD -->
-      <div id="tab-dash" class="adm-tab active">
-        <div class="adm-topbar">
+      <!-- DASH -->
+      <div id="tab-dash" class="atab active">
+        <div class="atop">
           <h2>Dashboard</h2>
-          <button class="btn-export" onclick="App.exportExcel()">📥 Export Excel</button>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi blue">
-            <div class="kpi-icon">👥</div>
-            <div class="kpi-val" id="kpi-total">—</div>
-            <div class="kpi-lbl">Total Responden</div>
+          <div class="export-group">
+            <button class="btn-export excel" onclick="App.exportExcel()">📊 Excel</button>
+            <button class="btn-export pdf" onclick="App.exportPDF()">📄 PDF</button>
+            <button class="btn-export word" onclick="App.exportWord()">📝 Word</button>
           </div>
-          <div class="kpi green">
-            <div class="kpi-icon">📊</div>
-            <div class="kpi-val" id="kpi-avg">—</div>
-            <div class="kpi-lbl">Rata-rata Nilai</div>
-          </div>
-          <div class="kpi gold">
-            <div class="kpi-icon">🏆</div>
-            <div class="kpi-val" id="kpi-max">—</div>
-            <div class="kpi-lbl">Nilai Tertinggi</div>
-          </div>
-          <div class="kpi purple">
-            <div class="kpi-icon">📅</div>
-            <div class="kpi-val" id="kpi-today">—</div>
-            <div class="kpi-lbl">Hari Ini</div>
-          </div>
+        </div>        <div class="kpi-grid">
+          <div class="kpi blue"><div class="ki">👥</div><div class="kv" id="k-total">—</div><div class="kl">Total Responden</div></div>
+          <div class="kpi green"><div class="ki">📊</div><div class="kv" id="k-avg">—</div><div class="kl">Rata-rata Nilai</div></div>
+          <div class="kpi gold"><div class="ki">🏆</div><div class="kv" id="k-max">—</div><div class="kl">Nilai Tertinggi</div></div>
+          <div class="kpi purple"><div class="ki">📅</div><div class="kv" id="k-today">—</div><div class="kl">Hari Ini</div></div>
         </div>
         <div class="adm-card">
-          <div class="adm-card-head">
-            <h3>Responden Terbaru</h3>
-            <span class="live-tag">🔴 Live</span>
-          </div>
-          <div class="table-scroll">
-            <table class="adm-table" id="tbl-recent">
-              <thead><tr><th>#</th><th>Nama</th><th>Institusi</th><th>Nilai</th><th>Waktu</th></tr></thead>
-              <tbody id="tbody-recent"></tbody>
+          <div class="acard-hd"><h3>Responden Terbaru</h3><span class="live-tag">🔴 Live</span></div>
+          <div class="tbl-wrap">
+            <table class="atbl" id="tbl-recent">
+              <thead><tr><th>#</th><th>Nama</th><th>Angkatan</th><th>Institusi</th><th>Nilai</th><th>Waktu</th></tr></thead>
+              <tbody id="tb-recent"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- TAB: RESPONDEN -->
-      <div id="tab-resp" class="adm-tab" style="display:none">
-        <div class="adm-topbar wrap-mobile">
+      <!-- RESP -->
+      <div id="tab-resp" class="atab" style="display:none">
+        <div class="atop wrap">
           <h2>Data Responden</h2>
-          <div class="topbar-actions">
-            <input type="text" class="search-inp" id="search-inp" placeholder="🔍 Cari nama / institusi..." oninput="App.filterResp()"/>
-            <button class="btn-export" onclick="App.exportExcel()">📥 Export Excel</button>
+          <div class="atop-acts">
+            <input class="srch" id="srch" placeholder="🔍 Cari nama / angkatan..." oninput="App.filter()"/>
+            <button class="btn-export excel" onclick="App.exportExcel()">📊 Excel</button>
+            <button class="btn-export pdf" onclick="App.exportPDF()">📄 PDF</button>
+            <button class="btn-export word" onclick="App.exportWord()">📝 Word</button>
             <button class="btn-del" onclick="App.confirmClear()">🗑 Hapus Semua</button>
           </div>
         </div>
         <div class="adm-card">
-          <div class="table-scroll">
-            <table class="adm-table wide" id="tbl-full">
-              <thead>
-                <tr>
-                  <th>#</th><th>Nama</th><th>Kelas</th><th>Institusi</th>
-                  <th>Email</th><th>Benar</th><th>Nilai</th><th>Tanggal &amp; Waktu</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-full"></tbody>
+          <div class="tbl-wrap">
+            <table class="atbl wide">
+              <thead><tr><th>#</th><th>Nama</th><th>Angkatan</th><th>Kelas</th><th>Institusi</th><th>Email</th><th>Benar</th><th>Nilai</th><th>Tanggal &amp; Waktu</th></tr></thead>
+              <tbody id="tb-full"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- TAB: STATISTIK SOAL -->
-      <div id="tab-stat" class="adm-tab" style="display:none">
-        <div class="adm-topbar"><h2>Statistik Per Soal</h2></div>
+      <!-- STAT -->
+      <div id="tab-stat" class="atab" style="display:none">
+        <div class="atop"><h2>Statistik Per Soal</h2></div>
         <div id="stat-grid" class="stat-grid"></div>
       </div>
 
@@ -482,12 +439,12 @@
   </div>
 </div>
 
-<!-- ========== MODAL KONFIRMASI ========== -->
+<!-- ========== MODAL ========== -->
 <div id="modal" class="modal-bg" style="display:none">
   <div class="modal-card">
-    <div class="modal-icon">⚠️</div>
-    <h3 id="modal-title">Konfirmasi</h3>
-    <p id="modal-msg">Yakin?</p>
+    <div class="modal-ico">⚠️</div>
+    <h3 id="modal-t">Konfirmasi</h3>
+    <p id="modal-m">Yakin?</p>
     <div class="modal-btns">
       <button class="btn-ghost" onclick="App.closeModal()">Batal</button>
       <button class="btn-del" id="modal-ok">Ya, Hapus</button>
@@ -495,6 +452,7 @@
   </div>
 </div>
 
+<script src="xlsx.mini.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
