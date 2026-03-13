@@ -46,7 +46,7 @@ Upload 3 file → Settings → Pages → main/root → Save
 | | |
 |--|--|
 | Username | `admin` |
-| Password | `teguh2024` |
+| Password | `********` |
 
 ---
 
