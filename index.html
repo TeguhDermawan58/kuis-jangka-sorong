@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuis Jangka Sorong | Teguh Dermawan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // ====================================================
+    // 🔥 KONFIGURASI FIREBASE — GANTI DENGAN MILIK KAMU
+    // ====================================================
+    const firebaseConfig = {
+      apiKey: "GANTI_API_KEY",
+      authDomain: "GANTI_AUTH_DOMAIN",
+      databaseURL: "GANTI_DATABASE_URL",
+      projectId: "GANTI_PROJECT_ID",
+      storageBucket: "GANTI_STORAGE_BUCKET",
+      messagingSenderId: "GANTI_MESSAGING_SENDER_ID",
+      appId: "GANTI_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    // Expose ke window agar app.js bisa pakai
+    window._firebaseDB  = db;
+    window._firebaseRef = ref;
+    window._firebasePush = push;
+    window._firebaseOnValue = onValue;
+    window._firebaseRemove = remove;
+    window._firebaseGet = get;
+    window._firebaseReady = true;
+
+    // Dispatch event supaya app.js tahu Firebase sudah siap
+    window.dispatchEvent(new Event('firebaseReady'));
+  </script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ========== LOADING SCREEN ========== -->
+<div id="loading-screen">
+  <div class="loading-inner">
+    <div class="loading-spinner"></div>
+    <p>Menghubungkan ke database...</p>
+  </div>
+</div>
+
+<!-- ========== SETUP GUIDE (tampil jika Firebase belum dikonfigurasi) ========== -->
+<div id="setup-guide" style="display:none">
+  <div class="setup-container">
+    <div class="setup-icon">🔥</div>
+    <h1>Setup Firebase Diperlukan</h1>
+    <p class="setup-sub">Ikuti langkah berikut untuk menghubungkan website dengan Firebase:</p>
+    <div class="setup-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Buat Project Firebase</strong>
+          <p>Pergi ke <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → klik <em>Add project</em> → beri nama (contoh: <code>kuis-jangka-sorong</code>)</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Aktifkan Realtime Database</strong>
+          <p>Di sidebar kiri → <em>Build</em> → <em>Realtime Database</em> → <em>Create Database</em> → pilih lokasi <strong>asia-southeast1</strong> → pilih mode <strong>Test mode</strong> (untuk awal)</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Dapatkan Konfigurasi</strong>
+          <p>Project Settings (⚙️) → <em>Your apps</em> → klik ikon Web (<code>&lt;/&gt;</code>) → Register app → copy <code>firebaseConfig</code></p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Edit file <code>index.html</code></strong>
+          <p>Ganti bagian <code>firebaseConfig</code> di dalam tag <code>&lt;script type="module"&gt;</code> dengan config yang kamu copy</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Atur Rules Database</strong>
+          <p>Di Realtime Database → tab <em>Rules</em> → paste rules berikut lalu klik Publish:</p>
+          <pre class="code-block">{
+  "rules": {
+    "responden": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>Upload ke GitHub & Aktifkan Pages</strong>
+          <p>Push semua file ke repository GitHub → Settings → Pages → Source: <strong>main / root</strong> → Save</p>
+        </div>
+      </div>
+    </div>
+    <div class="setup-note">
+      💡 <strong>Setelah setup selesai</strong>, refresh halaman ini dan website siap digunakan!
+    </div>
+  </div>
+</div>
+
+<!-- ========== COVER PAGE ========== -->
+<div id="page-cover" class="page" style="display:none">
+  <div class="cover-bg">
+    <div class="grid-overlay"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+  </div>
+  <div class="cover-content">
+    <div class="badge-chip">📐 Fisika · Alat Ukur</div>
+    <h1 class="cover-title">Jangka<br/><span class="accent">Sorong</span></h1>
+    <p class="cover-sub">Uji pemahamanmu tentang alat ukur presisi dengan 12 soal pilihan ganda interaktif</p>
+
+    <div class="cover-meta">
+      <div class="meta-item">
+        <span class="meta-icon">👤</span>
+        <div>
+          <div class="meta-label">Dibuat oleh</div>
+          <div class="meta-value">Teguh Dermawan</div>
+        </div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-item">
+        <span class="meta-icon">🎓</span>
+        <div>
+          <div class="meta-label">NIM</div>
+          <div class="meta-value">2284240017</div>
+        </div>
+      </div>
+      <div class="meta-divider"></div>
+      <div class="meta-item">
+        <span class="meta-icon">👥</span>
+        <div>
+          <div class="meta-label">Total Responden</div>
+          <div class="meta-value" id="cover-responden-count">
+            <span class="count-loading">...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-actions">
+      <button class="btn-primary" onclick="App.startQuiz()">
+        <span>Mulai Kuis</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <button class="btn-ghost" onclick="App.showAdminLogin()">🔐 Admin</button>
+    </div>
+
+    <div class="db-status" id="db-status">
+      <span class="db-dot"></span>
+      <span id="db-status-text">Terhubung ke Firebase</span>
+    </div>
+  </div>
+
+  <div class="cover-visual">
+    <div class="caliper-wrap">
+      <svg class="caliper-svg" viewBox="0 0 420 240" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f5c842"/><stop offset="100%" style="stop-color:#b8860b"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#4fc3f7"/><stop offset="100%" style="stop-color:#0277bd"/>
+          </linearGradient>
+        </defs>
+        <rect x="30" y="90" width="350" height="38" fill="url(#g1)" rx="6" opacity="0.92"/>
+        <rect x="30" y="128" width="56" height="80" fill="url(#g1)" rx="3" opacity="0.92"/>
+        <rect x="86" y="84" width="100" height="50" fill="url(#g2)" rx="4" opacity="0.88"/>
+        <rect x="86" y="128" width="56" height="64" fill="url(#g2)" rx="3" opacity="0.88"/>
+        <rect x="374" y="90" width="12" height="95" fill="#aaa" rx="4" opacity="0.8"/>
+        <g stroke="rgba(255,255,255,0.6)" stroke-width="1.2">
+          <line x1="86" y1="90" x2="86" y2="80"/><line x1="136" y1="90" x2="136" y2="80"/>
+          <line x1="186" y1="90" x2="186" y2="80"/><line x1="236" y1="90" x2="236" y2="80"/>
+          <line x1="286" y1="90" x2="286" y2="80"/><line x1="336" y1="90" x2="336" y2="80"/>
+          <line x1="111" y1="90" x2="111" y2="84"/><line x1="161" y1="90" x2="161" y2="84"/>
+          <line x1="211" y1="90" x2="211" y2="84"/><line x1="261" y1="90" x2="261" y2="84"/>
+          <line x1="311" y1="90" x2="311" y2="84"/>
+        </g>
+        <g font-family="monospace" font-size="12" fill="rgba(255,255,255,0.8)" text-anchor="middle">
+          <text x="86" y="76">0</text><text x="136" y="76">1</text><text x="186" y="76">2</text>
+          <text x="236" y="76">3</text><text x="286" y="76">4</text><text x="336" y="76">5</text>
+        </g>
+        <rect x="86" y="132" width="62" height="22" fill="#0d47a1" rx="3" opacity="0.8"/>
+        <g stroke="rgba(255,255,255,0.7)" stroke-width="1.2">
+          <line x1="86" y1="132" x2="86" y2="142"/><line x1="92" y1="132" x2="92" y2="138"/>
+          <line x1="98" y1="132" x2="98" y2="138"/><line x1="104" y1="132" x2="104" y2="138"/>
+          <line x1="110" y1="132" x2="110" y2="138"/><line x1="116" y1="132" x2="116" y2="138"/>
+          <line x1="122" y1="132" x2="122" y2="138"/><line x1="128" y1="132" x2="128" y2="138"/>
+          <line x1="134" y1="132" x2="134" y2="138"/><line x1="140" y1="132" x2="140" y2="142"/>
+          <line x1="148" y1="132" x2="148" y2="142"/>
+        </g>
+        <text x="210" y="210" font-family="'DM Sans',sans-serif" font-size="14" fill="rgba(245,200,66,0.6)" text-anchor="middle">Jangka Sorong · 0,1 mm</text>
+      </svg>
+      <div class="float-tags">
+        <div class="float-tag t1">Ketelitian 0,1 mm</div>
+        <div class="float-tag t2">Skala Nonius</div>
+        <div class="float-tag t3">Skala Utama</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== IDENTITY PAGE ========== -->
+<div id="page-identity" class="page" style="display:none">
+  <div class="page-center">
+    <div class="card-form">
+      <div class="card-form-header">
+        <button class="back-btn" onclick="App.showPage('page-cover')">← Kembali</button>
+        <div class="card-form-icon">📝</div>
+        <h2>Data Diri Responden</h2>
+        <p>Isi data sebelum mengerjakan kuis. Data ini akan tersimpan bersama hasil jawabanmu.</p>
+      </div>
+      <div class="card-form-body">
+        <div class="field-group">
+          <label>Nama Lengkap <span class="required">*</span></label>
+          <input type="text" id="inp-nama" placeholder="Masukkan nama lengkap" autocomplete="name"/>
+        </div>
+        <div class="field-row">
+          <div class="field-group">
+            <label>Kelas / Semester</label>
+            <input type="text" id="inp-kelas" placeholder="Contoh: XI IPA 2"/>
+          </div>
+          <div class="field-group">
+            <label>Institusi / Sekolah</label>
+            <input type="text" id="inp-institusi" placeholder="Nama sekolah/kampus"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Email (Opsional)</label>
+          <input type="email" id="inp-email" placeholder="email@contoh.com"/>
+        </div>
+        <div id="identity-error" class="error-box" style="display:none">⚠️ Nama lengkap wajib diisi!</div>
+        <button class="btn-primary full-w" onclick="App.startQuestions()">
+          Lanjut ke Soal →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== QUIZ PAGE ========== -->
+<div id="page-quiz" class="page" style="display:none">
+  <div class="quiz-wrapper">
+    <header class="quiz-header">
+      <div class="quiz-header-top">
+        <div class="quiz-brand">📐 Kuis Jangka Sorong</div>
+        <div class="quiz-timer" id="quiz-timer">⏱ <span id="timer-val">30:00</span></div>
+      </div>
+      <div class="quiz-progress-row">
+        <span class="quiz-prog-label" id="prog-label">Soal 1 dari 12</span>
+        <span class="quiz-prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="prog-fill"></div></div>
+    </header>
+
+    <div class="question-card">
+      <div class="q-number-bg" id="q-num-bg">01</div>
+      <div class="q-text" id="q-text">Loading...</div>
+      <div class="q-img-box" id="q-img-box" style="display:none">
+        <img id="q-img" src="" alt="Diagram Soal"/>
+        <div class="q-img-caption" id="q-img-caption"></div>
+      </div>
+      <div class="options-list" id="options-list"></div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="btn-nav-prev" id="btn-prev" onclick="App.prevQ()">← Sebelumnya</button>
+      <div class="dot-row" id="dot-row"></div>
+      <button class="btn-nav-next" id="btn-next" onclick="App.nextQ()">Selanjutnya →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RESULT PAGE ========== -->
+<div id="page-result" class="page" style="display:none">
+  <div class="page-center">
+    <div class="result-card">
+      <div class="result-glow"></div>
+      <div class="result-emoji" id="res-emoji">🎉</div>
+      <h2 class="result-heading" id="res-heading">Selesai!</h2>
+
+      <div class="score-donut">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#1e293b" stroke-width="12"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke-width="12"
+            stroke-dasharray="314" stroke-dashoffset="314"
+            id="donut-circle" stroke-linecap="round"
+            transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1.2s ease,stroke 0.5s"/>
+        </svg>
+        <div class="donut-center">
+          <div class="donut-score" id="donut-score">0</div>
+          <div class="donut-of">dari 12</div>
+        </div>
+      </div>
+
+      <p class="result-msg" id="res-msg"></p>
+
+      <div class="result-pills">
+        <div class="pill green"><span id="pill-benar">0</span> Benar ✅</div>
+        <div class="pill red"><span id="pill-salah">0</span> Salah ❌</div>
+        <div class="pill gold"><span id="pill-nilai">0</span> Nilai 📊</div>
+      </div>
+
+      <div class="save-status" id="save-status">
+        <div class="save-spinner"></div> Menyimpan data ke Firebase...
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" onclick="App.goHome()">🏠 Kembali ke Beranda</button>
+        <button class="btn-ghost" onclick="App.reviewAnswers()">📋 Review Jawaban</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== REVIEW PAGE ========== -->
+<div id="page-review" class="page" style="display:none">
+  <div class="review-wrap">
+    <div class="review-top">
+      <button class="back-btn" onclick="App.showPage('page-result')">← Kembali</button>
+      <h2>Review Jawaban</h2>
+    </div>
+    <div id="review-body"></div>
+  </div>
+</div>
+
+<!-- ========== ADMIN LOGIN ========== -->
+<div id="page-admin-login" class="page" style="display:none">
+  <div class="page-center">
+    <div class="card-form">
+      <div class="card-form-header">
+        <button class="back-btn" onclick="App.showPage('page-cover')">← Kembali</button>
+        <div class="card-form-icon">🔐</div>
+        <h2>Admin Panel</h2>
+        <p>Hanya admin yang dapat mengakses data responden dan export Excel</p>
+      </div>
+      <div class="card-form-body">
+        <div class="field-group">
+          <label>Username</label>
+          <input type="text" id="adm-user" placeholder="Username" autocomplete="username"/>
+        </div>
+        <div class="field-group">
+          <label>Password</label>
+          <input type="password" id="adm-pass" placeholder="Password" autocomplete="current-password"
+            onkeydown="if(event.key==='Enter') App.adminLogin()"/>
+        </div>
+        <div class="error-box" id="adm-error" style="display:none">❌ Username atau password salah!</div>
+        <button class="btn-primary full-w" onclick="App.adminLogin()">Masuk ke Admin Panel</button>
+        <p class="hint-small">Default: <code>admin</code> / <code>teguh2024</code></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ADMIN DASHBOARD ========== -->
+<div id="page-admin" class="page" style="display:none">
+  <div class="admin-shell">
+
+    <!-- Sidebar -->
+    <aside class="adm-sidebar">
+      <div class="adm-brand">
+        <div class="adm-avatar">TD</div>
+        <div>
+          <div class="adm-name">Admin Panel</div>
+          <div class="adm-nim">NIM 2284240017</div>
+        </div>
+      </div>
+      <nav class="adm-nav">
+        <button class="adm-nav-btn active" data-tab="dash" onclick="App.switchTab('dash',this)">
+          <span class="adm-nav-icon">📊</span> Dashboard
+        </button>
+        <button class="adm-nav-btn" data-tab="resp" onclick="App.switchTab('resp',this)">
+          <span class="adm-nav-icon">👥</span> Responden
+        </button>
+        <button class="adm-nav-btn" data-tab="stat" onclick="App.switchTab('stat',this)">
+          <span class="adm-nav-icon">📈</span> Statistik Soal
+        </button>
+      </nav>
+      <div class="adm-sidebar-footer">
+        <div class="live-badge"><span class="live-dot"></span> Live Firebase</div>
+        <button class="btn-logout" onclick="App.adminLogout()">🚪 Keluar</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="adm-main">
+
+      <!-- TAB: DASHBOARD -->
+      <div id="tab-dash" class="adm-tab active">
+        <div class="adm-topbar">
+          <h2>Dashboard</h2>
+          <button class="btn-export" onclick="App.exportExcel()">📥 Export Excel</button>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi blue">
+            <div class="kpi-icon">👥</div>
+            <div class="kpi-val" id="kpi-total">—</div>
+            <div class="kpi-lbl">Total Responden</div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-icon">📊</div>
+            <div class="kpi-val" id="kpi-avg">—</div>
+            <div class="kpi-lbl">Rata-rata Nilai</div>
+          </div>
+          <div class="kpi gold">
+            <div class="kpi-icon">🏆</div>
+            <div class="kpi-val" id="kpi-max">—</div>
+            <div class="kpi-lbl">Nilai Tertinggi</div>
+          </div>
+          <div class="kpi purple">
+            <div class="kpi-icon">📅</div>
+            <div class="kpi-val" id="kpi-today">—</div>
+            <div class="kpi-lbl">Hari Ini</div>
+          </div>
+        </div>
+        <div class="adm-card">
+          <div class="adm-card-head">
+            <h3>Responden Terbaru</h3>
+            <span class="live-tag">🔴 Live</span>
+          </div>
+          <div class="table-scroll">
+            <table class="adm-table" id="tbl-recent">
+              <thead><tr><th>#</th><th>Nama</th><th>Institusi</th><th>Nilai</th><th>Waktu</th></tr></thead>
+              <tbody id="tbody-recent"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: RESPONDEN -->
+      <div id="tab-resp" class="adm-tab" style="display:none">
+        <div class="adm-topbar wrap-mobile">
+          <h2>Data Responden</h2>
+          <div class="topbar-actions">
+            <input type="text" class="search-inp" id="search-inp" placeholder="🔍 Cari nama / institusi..." oninput="App.filterResp()"/>
+            <button class="btn-export" onclick="App.exportExcel()">📥 Export Excel</button>
+            <button class="btn-del" onclick="App.confirmClear()">🗑 Hapus Semua</button>
+          </div>
+        </div>
+        <div class="adm-card">
+          <div class="table-scroll">
+            <table class="adm-table wide" id="tbl-full">
+              <thead>
+                <tr>
+                  <th>#</th><th>Nama</th><th>Kelas</th><th>Institusi</th>
+                  <th>Email</th><th>Benar</th><th>Nilai</th><th>Tanggal &amp; Waktu</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-full"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: STATISTIK SOAL -->
+      <div id="tab-stat" class="adm-tab" style="display:none">
+        <div class="adm-topbar"><h2>Statistik Per Soal</h2></div>
+        <div id="stat-grid" class="stat-grid"></div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ========== MODAL KONFIRMASI ========== -->
+<div id="modal" class="modal-bg" style="display:none">
+  <div class="modal-card">
+    <div class="modal-icon">⚠️</div>
+    <h3 id="modal-title">Konfirmasi</h3>
+    <p id="modal-msg">Yakin?</p>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="App.closeModal()">Batal</button>
+      <button class="btn-del" id="modal-ok">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
