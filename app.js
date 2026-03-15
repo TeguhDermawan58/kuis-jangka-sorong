@@ -41,7 +41,7 @@ const SOAL = [
   {
     id:7,
     teks:"Ketelitian standar jangka sorong yang paling umum digunakan di sekolah adalah....",
-    p:["0,01 mm","0,001 mm","0,1 mm","1 mm"],
+    p:["0,01 mm","0,001 mm","0,02 mm","1 mm"],
     jwb:2
   },
   {
